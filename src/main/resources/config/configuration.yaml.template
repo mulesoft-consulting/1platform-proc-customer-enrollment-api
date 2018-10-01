@@ -1,0 +1,33 @@
+https:
+  port: 
+    
+api:
+  customer:
+    host: 
+    port: 
+    protocol: 
+    basePath: 
+    
+anypoint:
+  platform:
+    client_id: 
+    client_secret: 
+    visualizer:
+      layer: 
+  mq:
+    url: 
+    exchange:
+      name: 
+    client:
+      id: 
+      secret: 
+   
+app:
+  client:
+    id: 
+    secret: 
+  autodiscovery: 
+  
+keystore:
+  path: 
+  password: 

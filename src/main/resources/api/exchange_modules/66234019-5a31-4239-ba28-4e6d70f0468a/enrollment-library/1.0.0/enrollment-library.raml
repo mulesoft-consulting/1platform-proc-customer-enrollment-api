@@ -1,0 +1,21 @@
+#%RAML 1.0 Library
+uses:
+  customer: /exchange_modules/b2cc42af-8763-43cf-a316-246ce7aefd04/customer-library/1.0.4/customer-library.raml
+  collection: /exchange_modules/5dfb47dc-12e3-4cac-afc5-a00be32d15d8/collection-library/1.0.30/collection-library.raml
+
+types:
+  Enrollment:
+    type:  customer.Customer
+    example: !include examples/member.raml        
+  
+  EnrollmentCollection:
+    type:  Enrollment[]
+    example: !include examples/collection.raml
+
+  EnrollmentCollectionResponse:
+    type: collection.CollectionResponse
+    properties:
+      enrollments: 
+        type: Enrollment[]
+        required: false
+    example: !include examples/collectionResponse.raml
