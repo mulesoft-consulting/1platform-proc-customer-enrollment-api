@@ -9,11 +9,6 @@ api:
     basePath: 
     
 anypoint:
-  platform:
-    client_id: 
-    client_secret: 
-    visualizer:
-      layer: 
   mq:
     url: 
     exchange:
@@ -23,9 +18,8 @@ anypoint:
       secret: 
    
 app:
-  client:
-    id: 
-    secret: 
+  client_id:
+  client_secret: 
   autodiscovery: 
   
 keystore:
