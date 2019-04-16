@@ -200,8 +200,12 @@ vars.messages ++ [vars.originalPayload]]]></ee:set-variable>
 output application/json
 ---
 {
-  totalItems: sizeOf(vars.messages),
-  messages: vars.messages
+  meta: {
+  	totalItems: sizeOf(vars.messages),
+  	pagingOffset: 0,
+  	pagingLimit: 25,
+  	messages: vars.messages
+  }
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
