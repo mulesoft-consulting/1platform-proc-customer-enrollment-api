@@ -146,13 +146,16 @@ output application/json
         </error-handler>
     </flow>
 	<flow name="post:\enrollments:application\json:customer-enrollment-api-config">
-        <set-variable value="#[[]]" doc:name="Set Variable" doc:id="699fdbf1-120e-4c92-8494-343ee60ffd13" variableName="messages"/>
+		<set-variable value="#[[]]" doc:name="Set Variable" doc:id="a5dd9dce-51d8-47f1-b902-c9829ae14c67" variableName="messages"/>
 		<customer-apispec:post-customers doc:name="Post customers" doc:id="89c45b16-aa7e-49d4-98cc-b4cb2161d338" config-ref="Customer_API_Spec_Config"/>
 		<foreach doc:name="For Each" doc:id="cd7fcdaf-10aa-4bca-90ea-e134d2e7c389" collection="#[payload.meta.messages]">
 			<set-variable value="#[payload]" doc:name="Set Variable" doc:id="db77fb41-55f1-4906-b076-f191b0a2196d" variableName="originalPayload"/>
 			<choice doc:name="Choice" doc:id="71baed4e-6c89-4e60-848e-8e15ad698c35" >
 				<when expression="#[payload.code == '201']">
 					<logger level="INFO" doc:name="Logger" doc:id="13ed913e-f886-47ee-bcfe-00b0da0000fd" message="#['User created with id ' ++ payload.itemId default &quot;NONE&quot;]"/>
+					<tracking:custom-event doc:name="Custom Business Event" doc:id="e833c151-be22-4a76-8943-2aaa94e73fc3" event-name="New Customer">
+						<tracking:meta-data key="Customer ID" value="#[vars.originalPayload.itemId]" />
+					</tracking:custom-event>
 					<ee:transform doc:name="Create Event Payload" doc:id="c8e1648f-7302-4dc8-af16-3b40c7ebc8cb">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -175,9 +178,6 @@ vars.messages ++ [payload]]]></ee:set-variable>
 				</ee:variables>
 		</ee:transform>
 					<anypoint-mq:publish doc:name="Publish Event" doc:id="d78c0ee8-e079-4498-b41e-b6b45590ce7a" destination="${anypoint.mq.exchange.name}" config-ref="Anypoint_MQ_Default_subscriber" />
-					<tracking:custom-event doc:name="Custom Business Event" doc:id="e833c151-be22-4a76-8943-2aaa94e73fc3" event-name="New Customer">
-						<tracking:meta-data key="Customer ID" value="#[vars.originalPayload.itemId]"/>
-					</tracking:custom-event>
 				</when>
 				<otherwise >
 					<logger level="WARN" doc:name="Logger" doc:id="d1d41d2b-1a59-4680-91f7-7d679a53c3cf" message="#['Ignoring user creation due to code ' ++ payload.code default &quot;000&quot;]"/>
