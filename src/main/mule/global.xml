@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+<mule xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" 
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
 	xmlns:customer-apispec="http://www.mulesoft.org/schema/mule/customer-apispec"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/customer-apispec http://www.mulesoft.org/schema/mule/customer-apispec/current/mule-customer-apispec.xsd
 http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
 http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd">
 	<configuration-properties doc:name="Configuration properties" doc:id="24f47e10-ae31-4c3d-a5d2-650bef5c45f7" file="config/configuration.yaml" />
 	<customer-apispec:config name="Customer_API_Spec_Config" doc:name="Customer API Spec Config" doc:id="b691e0f3-cf48-4932-ab1c-b879f962ab91" property_host="${api.customer.host}" property_port="${api.customer.port}" property_basePath="${api.customer.basePath}" property_protocol="${api.customer.protocol}" property_client-id="${app.client_id}" property_client-secret="${app.client_secret}" />
 	<api-gateway:autodiscovery apiId="${app.autodiscovery}" doc:name="API Autodiscovery" doc:id="34176abc-ca31-478f-aeb5-3979c58c302d" flowRef="customer-enrollment-api-main" />
-	<anypoint-mq:default-subscriber-config name="Anypoint_MQ_Default_subscriber" doc:name="Anypoint MQ Default subscriber" doc:id="cda10f13-bafb-41b7-9781-0381ae63c6a5" >
+	<anypoint-mq:default-subscriber-config name="Anypoint_MQ_Default_subscriber" doc:name="Anypoint MQ Default subscriber" doc:id="cda10f13-bafb-41b7-9781-0381ae63c6a5" acknowledgementTimeout="30000">
 		<anypoint-mq:connection url="${anypoint.mq.url}" clientId="${anypoint.mq.client.id}" clientSecret="${anypoint.mq.client.secret}" />
 	</anypoint-mq:default-subscriber-config>
 </mule>

@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" 
-	xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" 
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" 
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" 
+	xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" 
 	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" 
 	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" 
 	xmlns:customer-apispec="http://www.mulesoft.org/schema/mule/customer-apispec" 
 	xmlns:tls="http://www.mulesoft.org/schema/mule/tls" 
 	xmlns="http://www.mulesoft.org/schema/mule/core" 
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 	http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
 	http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
 	http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
 	http://www.mulesoft.org/schema/mule/customer-apispec http://www.mulesoft.org/schema/mule/customer-apispec/current/mule-customer-apispec.xsd
 	http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 	http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
-	http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
 	    <http:listener-config name="customer-enrollment-api-httpListenerConfig">
 	        <http:listener-connection host="0.0.0.0" port="${https.port}" protocol="HTTPS">
 				<tls:context>
@@ -145,10 +146,17 @@ output application/json
         </error-handler>
     </flow>
 	<flow name="post:\enrollments:application\json:customer-enrollment-api-config">
-        <set-variable value="#[[]]" doc:name="Set Variable" doc:id="699fdbf1-120e-4c92-8494-343ee60ffd13" variableName="messages"/>
+		<set-variable value="#[[]]" doc:name="Set Variable" doc:id="a5dd9dce-51d8-47f1-b902-c9829ae14c67" variableName="messages"/>
 		<customer-apispec:post-customers doc:name="Post customers" doc:id="89c45b16-aa7e-49d4-98cc-b4cb2161d338" config-ref="Customer_API_Spec_Config"/>
-		<foreach doc:name="For Each" doc:id="cd7fcdaf-10aa-4bca-90ea-e134d2e7c389" collection="#[payload.messages]">
-			<ee:transform doc:name="Create Event Payload" doc:id="c8e1648f-7302-4dc8-af16-3b40c7ebc8cb">
+		<foreach doc:name="For Each" doc:id="cd7fcdaf-10aa-4bca-90ea-e134d2e7c389" collection="#[payload.meta.messages]">
+			<set-variable value="#[payload]" doc:name="Set Variable" doc:id="db77fb41-55f1-4906-b076-f191b0a2196d" variableName="originalPayload"/>
+			<choice doc:name="Choice" doc:id="71baed4e-6c89-4e60-848e-8e15ad698c35" >
+				<when expression="#[payload.code == '201']">
+					<logger level="INFO" doc:name="Logger" doc:id="13ed913e-f886-47ee-bcfe-00b0da0000fd" message="#['User created with id ' ++ payload.itemId default &quot;NONE&quot;]"/>
+					<tracking:custom-event doc:name="Custom Business Event" doc:id="e833c151-be22-4a76-8943-2aaa94e73fc3" event-name="New Customer">
+						<tracking:meta-data key="Customer ID" value="#[vars.originalPayload.itemId]" />
+					</tracking:custom-event>
+					<ee:transform doc:name="Create Event Payload" doc:id="c8e1648f-7302-4dc8-af16-3b40c7ebc8cb">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
@@ -162,14 +170,29 @@ output application/json
       }
 }]]></ee:set-payload>
 			</ee:message>
-				<ee:variables >
-					<ee:set-variable variableName="messages" ><![CDATA[%dw 2.0
+				<ee:variables>
+					<ee:set-variable variableName="messages"><![CDATA[%dw 2.0
 output application/java
 ---
 vars.messages ++ [payload]]]></ee:set-variable>
 				</ee:variables>
 		</ee:transform>
-			<anypoint-mq:publish doc:name="Publish Event" doc:id="d78c0ee8-e079-4498-b41e-b6b45590ce7a" destination="${anypoint.mq.exchange.name}" config-ref="Anypoint_MQ_Default_subscriber"/>
+					<anypoint-mq:publish doc:name="Publish Event" doc:id="d78c0ee8-e079-4498-b41e-b6b45590ce7a" destination="${anypoint.mq.exchange.name}" config-ref="Anypoint_MQ_Default_subscriber" />
+				</when>
+				<otherwise >
+					<logger level="WARN" doc:name="Logger" doc:id="d1d41d2b-1a59-4680-91f7-7d679a53c3cf" message="#['Ignoring user creation due to code ' ++ payload.code default &quot;000&quot;]"/>
+					<ee:transform doc:name="Add to Messages" doc:id="55ae9f0d-0b4c-453c-a823-3fdb24f8fa27" >
+						<ee:message >
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="messages" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.messages ++ [vars.originalPayload]]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</otherwise>
+			</choice>
 		</foreach>
 		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="88a779ad-65d6-4921-942e-59912a6a71a9" doc:name="Set Response">
             <ee:message>
@@ -177,8 +200,12 @@ vars.messages ++ [payload]]]></ee:set-variable>
 output application/json
 ---
 {
-  totalItems: sizeOf(vars.messages),
-  messages: vars.messages
+  meta: {
+  	totalItems: sizeOf(vars.messages),
+  	pagingOffset: 0,
+  	pagingLimit: 25,
+  	messages: vars.messages
+  }
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
